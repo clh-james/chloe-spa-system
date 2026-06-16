@@ -6,39 +6,35 @@ const path = require('path');
 const app = express();
 const PORT = 5000;
 
-// Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware to parse JSON
 app.use(express.json());
 
-// Set up SQLite database (ensures the database folder exists)
-const dbPath = path.resolve(__dirname, 'database', 'spa.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('❌ Error opening database:', err.message);
-  } else {
-    console.log('✅ Connected to the Chloe Spa SQLite database.');
-    
-    // Create bookings table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS bookings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      email TEXT,
-      service TEXT,
-      date TEXT,
-      time TEXT,
-      notes TEXT
-    )`, (err) => {
+// GET all bookings
+app.get('/api/bookings', (req, res) => {
+  db.all('SELECT * FROM bookings ORDER BY created_at DESC', (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: 'Database error' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+// POST a new booking
+app.post('/api/bookings', (req, res) => {
+  const { name, email, phone, service, date, time, notes } = req.body;
+  
+  db.run(
+    'INSERT INTO bookings (name, email, phone, service, date, time, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [name, email, phone, service, date, time, notes],
+    function(err) {
       if (err) {
-        console.error('❌ Error creating table:', err.message);
+        res.status(500).json({ error: 'Database error' });
       } else {
-        console.log('✅ Bookings table is ready.');
+        res.json({ message: 'Booking created successfully!', id: this.lastID });
       }
-    });
-  }
+    }
+  );
 });
 
 // --- API ENDPOINT: Create a new booking ---
