@@ -16,7 +16,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
   } else {
     console.log('✅ Connected to the Chloe Spa SQLite database.');
     
-    // Create bookings table
+    // Create bookings table with all columns
     db.run(`CREATE TABLE IF NOT EXISTS bookings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -33,10 +33,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
       if (err) {
         console.error('❌ Error creating table:', err.message);
       } else {
-        console.log('✅ Bookings table is ready.');
-        // Add columns if they don't exist (for existing databases)
-        db.run(`ALTER TABLE bookings ADD COLUMN downpayment_amount REAL DEFAULT 500`);
-        db.run(`ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'Pending'`);
+        console.log('✅ Bookings table is ready with payment columns.');
       }
     });
   }
